@@ -7,13 +7,13 @@ This is a zabbix custom script email with graph
 python mail_with_graph.py -h
 usage: mail_with_graph.py [-h] receiver subject content [withgraph]
 
-Send mail to user for zabbix alerting
+send mail to user for zabbix alerting
 
 positional arguments:
-  receiver    The address of the E-mail that send to user
-  subject     The subject of the E-mail
-  content     The content of the E-mail
-  withgraph   The Zabbix Graph for mail to user
+  receiver    user of the mail to send
+  subject     subject of the mail
+  content     content of the mail
+  withgraph   The Zabbix Graph for mail
 
 optional arguments:
   -h, --help  show this help message and exit

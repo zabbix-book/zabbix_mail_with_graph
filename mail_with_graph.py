@@ -20,6 +20,7 @@ import tempfile
 import re
 import urllib3
 
+
 class Zabbix_Graph(object):
     """ Zabbix_Graph """
 
@@ -32,27 +33,31 @@ class Zabbix_Graph(object):
         self.url = url
         self.user = user
         self.pwd = pwd
-        self.auth_str = ""
         self.cookies = {}
         self.zapi = None
 
     def _do_login(self):
         """ do_login """
+        if self.url == None or self.user == None or self.pwd == None:
+            print "url or user or u_pwd can not None"
+            return None
+        if self.zapi is not None:
+            return self.zapi
         try:
             zapi = ZabbixAPI(self.url)
             zapi.session.verify = False
             zapi.login(self.user, self.pwd)
-            self.auth_str = str(zapi.auth)
-            self.cookies["zbx_sessionid"] = self.auth_str
+            self.cookies["zbx_sessionid"] = str(zapi.auth)
             self.zapi = zapi
             return zapi
-        except:
-            print "auth failed"
+        except Exception as e:
+            print "auth failed:\t%s " % (e)
+            return None
 
     def _is_can_graph(self, itemid=None):
         self.zapi = self._do_login()
         if self.zapi is None:
-            print "self.zapi  is None"
+            print "zabbix login fail, self.zapi is None:"
             return False
         if itemid is not None:
             """
@@ -76,32 +81,27 @@ class Zabbix_Graph(object):
         if itemid == None:
             print "itemid can not None"
             return "ERROR"
-        if self.url == None or self.user == None or self.pwd == None:
-            print "url or user or u_pwd can not None"
-            return "ERROR"
+
         if self._is_can_graph(itemid=itemid) is False or self.zapi is None:
             print "itemid can't graph"
             return "ERROR"
-        if self.auth_str == "":
-            print "auth is null, please check zbx_url,zbx_user,zbx_u_pwd"
-            return "ERROR"
 
-        if len(re.findall('4.0',self.zapi.api_version())) == 1:
+        if len(re.findall('4.0', self.zapi.api_version())) == 1:
                 graph_url = "%s/chart.php?from=now-1h&to=now&itemids[]=%s" % (
-                zbx_url, itemid)
+                    zbx_url, itemid)
         else:
             graph_url = "%s/chart.php?period=3600&itemids[]=%s" % (
                 zbx_url, itemid)
 
         try:
             rq = requests.get(graph_url, cookies=self.cookies,
-                              timeout=0.5, stream=True, verify = False)
+                              timeout=0.5, stream=True, verify=False)
             if rq.status_code == 200:
                 imgpath = tempfile.mktemp()
                 with open(imgpath, 'wb') as f:
                     for chunk in rq.iter_content(1024):
                         f.write(chunk)
-                    return imgpath 
+                    return imgpath
         except:
             return "ERROR"
         finally:
@@ -224,6 +224,7 @@ class Mail(object):
         except:
             pass
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='send mail to user for zabbix alerting')
@@ -237,6 +238,12 @@ if __name__ == "__main__":
                         default='None', help='The Zabbix Graph for mail')
 
     args = parser.parse_args()
+    receiver = args.receiver
+    subject = args.subject
+    content = args.content
+    withgraph = args.withgraph
+    img = "ERROR"
+    itemid = "0"
 
     # QQ enterprise
     # smtp_server = 'smtp.exmail.qq.com'
@@ -250,36 +257,35 @@ if __name__ == "__main__":
     # smtp_user = 'itnihao_zabbix@163.com'
     # smtp_u_pwd = '1234567890'
 
-    # QQ Mail
+    #-----------------------------------------------------------------------------------#
+    # Mail Server (mail.qq.com), you should set it with you mail server information
     smtp_server = 'smtp.qq.com'
     smtp_port = 25
     smtp_user = 'itnihao_zabbix@qq.com'
     smtp_pwd = '1234567890'
 
-    # Zabbix API
+    # Zabbix API, you should set it
     zbx_url = 'http://127.0.0.1/zabbix'
     #zbx_url = 'http://127.0.0.1'
     zbx_user = 'Admin'
     zbx_pwd = 'zabbix'
+    #-----------------------------------------------------------------------------------#
 
-    receiver = args.receiver
-    subject = args.subject
-    content = args.content
-    withgraph = args.withgraph
-    img = "ERROR"
-    itemid = "0"
-
+    #get itemid from action
     split_itemid = re.split("ItemID:\s\d", content)
     pattern = re.compile(r'ItemID:.*')
     str_itemid = pattern.findall(content)
     if len(str_itemid) > 0:
         itemid = str_itemid[0].replace(" ", "").replace("ItemID:", "")
 
+    #get graph from zabbix web
     if withgraph != "None" and itemid != "0":
         down_graph = Zabbix_Graph(
             url=zbx_url, user=zbx_user, pwd=zbx_pwd, timeout=0.5)
-        img = down_graph.get_graph(itemid=itemid)
+        if down_graph is not None:
+            img = down_graph.get_graph(itemid=itemid)
 
+    #send mail
     mail_server = Mail(server=smtp_server, port=smtp_port,
                        user=smtp_user, pwd=smtp_pwd)
     if img == "ERROR":
