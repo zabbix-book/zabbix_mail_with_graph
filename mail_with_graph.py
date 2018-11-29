@@ -19,13 +19,12 @@ import requests
 import tempfile
 import re
 import urllib3
-urllib3.disable_warnings()
-
 
 class Zabbix_Graph(object):
     """ Zabbix_Graph """
 
     def __init__(self, url=None, user=None, pwd=None, timeout=None):
+        urllib3.disable_warnings()
         if timeout == None:
             self.timeout = 1
         else:
@@ -65,7 +64,6 @@ class Zabbix_Graph(object):
             """
             item_info = self.zapi.item.get(
                 filter={"itemid": itemid}, output=["value_type"])
-            print item_info
             if len(item_info) > 0:
                 if item_info[0]["value_type"] in [u'0', u'3']:
                     return True
@@ -103,10 +101,11 @@ class Zabbix_Graph(object):
                 with open(imgpath, 'wb') as f:
                     for chunk in rq.iter_content(1024):
                         f.write(chunk)
-                    return imgpath
-            rq.close()
+                    return imgpath 
         except:
             return "ERROR"
+        finally:
+            rq.close()
 
 
 class Mail(object):
@@ -198,7 +197,6 @@ class Mail(object):
 
     def log(self, receiver, subject, content):
         """ log """
-
         if not os.path.isdir(self.logpath):
             os.makedirs(self.logpath)
 
@@ -226,18 +224,17 @@ class Mail(object):
         except:
             pass
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Send mail to user for zabbix alerting')
+        description='send mail to user for zabbix alerting')
     parser.add_argument('receiver', action="store",
-                        help='The address of the E-mail that send to user ')
+                        help='user of the mail to send')
     parser.add_argument('subject', action="store",
-                        help='The subject of the E-mail')
+                        help='subject of the mail')
     parser.add_argument('content', action="store",
-                        help='The content of the E-mail')
+                        help='content of the mail')
     parser.add_argument('withgraph', action="store", nargs='?',
-                        default='None', help='The Zabbix Graph for mail to user')
+                        default='None', help='The Zabbix Graph for mail')
 
     args = parser.parse_args()
 

@@ -1,6 +1,7 @@
 # zabbix_mail_with_graph  
 This is a zabbix custom script email with graph   
-这是一个Zabbix邮件发送的开源项目，支持邮件发送的时候附带监控指标的图像  
+这是一个Zabbix邮件发送的开源项目，支持邮件发送的时候附带监控指标的图像,如果指标的图像不存在，则不会发送图片 
+发送过的日志会保存到/tmp/.zabbix_alert目录，程序自动删除7天以前的发送记录
 
 ```
 python mail_with_graph.py -h
@@ -69,9 +70,28 @@ shell# chown zabbix:zabbix /etc/zabbix/alertscripts/mail_with_graph.py
 ```
 
 # 6. configration media type
+```
+{ALERT.SENDTO}
+{ALERT.SUBJECT}
+{ALERT.MESSAGE}
+withgraph
+```
+withgraph  is a choice parameter.    
+if you want to send mail with zabbix graph, you should configration it  
 ![](./img/media.png)
 
 # 7. configration action
+Add ```ItemID: {ITEM.ID}``` to action  
+```
+Problem started at {EVENT.TIME} on {EVENT.DATE}
+Problem name: {EVENT.NAME}
+Host: {HOST.NAME}
+Severity: {EVENT.SEVERITY}
+ItemID: {ITEM.ID}     #Add this
+
+Original problem ID: {EVENT.ID}
+{TRIGGER.URL}
+```
 ![](./img/action.png)
 
 # 8. trigger a problem
