@@ -18,14 +18,13 @@ optional arguments:
   -h, --help  show this help message and exit
 ``` 
 
-#1. install python module
+# 1. install python module
 ```
 pip install pyzabbix
 pip install requests
 ```
 
-#2. configration scripts connect information
-
+# 2. configration scripts connect information
 ```
 shell# vim mail_with_graph.py
 # You email information
@@ -42,7 +41,7 @@ zbx_pwd = 'zabbix' #user password
 ```
 ![](./img/script.png)
 
-#3. check mail script
+# 3. check mail script
 ```
 shell# python mail_with_graph.py you@email.com  '主机linux-2018操作系统被重启(系统启动持续时间和前面一次不同)' '
 Message:
@@ -55,28 +54,27 @@ ItemID: 23316   #check itemid
 Original problem ID: 836454 '  withgraph
 ```
 
-#4. configration zabbix_server.conf
+# 4. configration zabbix_server.conf
 ```
 shell# vim /etc/zabbix/zabbix_server.conf 
 AlertScriptsPath=/etc/zabbix/alertscripts
 shell# systemctl restart zabbix-server
 ```
 
-#5. cp script to /etc/zabbix/alertscripts
+# 5. cp script to /etc/zabbix/alertscripts
 ```
 shell# cp mail_with_graph.py /etc/zabbix/alertscripts/mail_with_graph.py
 shell# chown 700 /etc/zabbix/alertscripts/mail_with_graph.py
 shell# chown zabbix:zabbix /etc/zabbix/alertscripts/mail_with_graph.py
 ```
 
-#6. configration media type
+# 6. configration media type
 ![](./img/media.png)
 
-
-#7. configration action
+# 7. configration action
 ![](./img/action.png)
 
-#8. trigger a problem
+# 8. trigger a problem
 
-#9. receive a problem mail
+# 9. receive a problem mail
 ![](./img/mail.png)
