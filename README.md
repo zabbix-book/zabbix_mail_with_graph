@@ -98,3 +98,19 @@ Original problem ID: {EVENT.ID}
 
 # 9. receive a problem mail
 ![](./img/mail.png)
+
+# 10. 问题反馈
+有用centos7遇到requests库报错的，报错同https://github.com/ansible/tower-cli/issues/603，
+解决办法如下
+```
+pip uninstall requests
+pip uninstall urllib3
+yum remove python-urllib3
+yum remove python-requests
+
+rpm -qa | grep requests 
+pip freeze | grep requests
+
+yum install python-urllib3
+yum install python-requests
+```
