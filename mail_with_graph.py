@@ -95,18 +95,16 @@ class Zabbix_Graph(object):
 
         try:
             rq = requests.get(graph_url, cookies=self.cookies,
-                              timeout=0.5, stream=True, verify=False)
+                              timeout=self.timeout, stream=True, verify=False)
             if rq.status_code == 200:
                 imgpath = tempfile.mktemp()
                 with open(imgpath, 'wb') as f:
                     for chunk in rq.iter_content(1024):
                         f.write(chunk)
                     return imgpath
+            rq.close()
         except:
             return "ERROR"
-        finally:
-            rq.close()
-
 
 class Mail(object):
     """ send mail"""
@@ -281,7 +279,7 @@ if __name__ == "__main__":
     #get graph from zabbix web
     if withgraph != "None" and itemid != "0":
         down_graph = Zabbix_Graph(
-            url=zbx_url, user=zbx_user, pwd=zbx_pwd, timeout=0.5)
+            url=zbx_url, user=zbx_user, pwd=zbx_pwd, timeout=3)
         if down_graph is not None:
             img = down_graph.get_graph(itemid=itemid)
 
